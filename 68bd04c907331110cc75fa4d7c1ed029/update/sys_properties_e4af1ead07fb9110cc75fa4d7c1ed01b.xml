@@ -17,7 +17,7 @@
         <sys_scope display_value="Test Git Global">68bd04c907331110cc75fa4d7c1ed029</sys_scope>
         <sys_update_name>sys_properties_e4af1ead07fb9110cc75fa4d7c1ed01b</sys_update_name>
         <type>boolean</type>
-        <value>false</value>
+        <value>true</value>
         <write_roles/>
     </sys_properties>
     <sys_translated_text action="delete_multiple" query="documentkey=e4af1ead07fb9110cc75fa4d7c1ed01b"/>
