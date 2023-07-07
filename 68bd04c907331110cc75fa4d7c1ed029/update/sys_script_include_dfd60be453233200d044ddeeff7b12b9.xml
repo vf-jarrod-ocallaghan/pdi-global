@@ -1,0 +1,252 @@
+<?xml version="1.0" encoding="UTF-8"?><record_update table="sys_script_include">
+    <sys_script_include action="INSERT_OR_UPDATE">
+        <access>package_private</access>
+        <active>true</active>
+        <api_name>global.AgileBoardVtb</api_name>
+        <caller_access/>
+        <client_callable>false</client_callable>
+        <description/>
+        <name>AgileBoardVtb</name>
+        <script><![CDATA[var AgileBoardVtb = Class.create();
+
+AgileBoardVtb.prototype = {
+	initialize: function() {
+	},
+	
+	addMemberToBoard: function(userId, boardId) {
+		if(!this.isVtbMember(boardId, userId)) {
+			var gr = new GlideRecord('vtb_board_member');
+			gr.setValue('user', userId);
+			gr.setValue('board', boardId);
+			gr.insert();
+		}
+	},
+	
+	getActiveSprintsCount: function(groupId) {
+		
+		var count = new GlideAggregate('rm_sprint');
+		var sprints = 0;
+		
+		count.addQuery('assignment_group', groupId);
+		count.addQuery('sys_class_name', "rm_sprint");
+		count.addQuery('state', '2');
+		count.addAggregate('COUNT');
+		count.query();
+		
+		if (count.next()) 
+			sprints = count.getAggregate('COUNT');
+		
+		return sprints;
+	},
+	
+	getGroupMembers: function(groupId) {
+		
+		var members = [];
+		var gr = new GlideRecordSecure('sys_user_grmember');
+		gr.addQuery('group', groupId);
+		gr.orderBy('user');
+		gr.query();
+		
+		while(gr.next()) {
+			members.push(gr.getValue('user'));
+		}
+		
+		return members;
+	},
+	
+	isVtbMember: function(boardId, userId) {
+		
+		var vtbMem = new GlideRecord('vtb_board_member');
+		
+		vtbMem.addQuery('user', userId);
+		vtbMem.addQuery('board', boardId);
+		vtbMem.query();
+		
+		if(vtbMem.next()) {
+			return true;
+		}
+		
+		return false;
+	},
+	
+	findOrGenerateVtbUrl: function(config) {
+		var boardId;
+		var id;
+		
+		boardId = this.findVtb(config.groupId, config.tableName);
+			
+		if ( JSUtil.nil(boardId) )
+			id = this._createVtb(config);
+		else
+			id = boardId;
+		
+		if(!this.isVtbMember(id, gs.getUserID())) {
+			this.addMemberToBoard(gs.getUserID(), id);
+		}
+		
+		return this._getVtbUrlFromId(id);
+	},
+	
+	_getVtbUrlFromId: function(id) {
+		return '/$vtb.do?sysparm_board=' + id;
+	},
+	
+	findVtb: function(groupId, tableName) {
+		var board = new GlideRecord("agile_group_vtb_board");
+		board.addQuery('group', groupId);
+		board.addQuery('vtb_board.table', tableName);
+		board.query();
+		
+		if (board.next())
+			return board.getValue('vtb_board');
+		else
+			return null;
+	},
+	
+	_createVtb: function(config) {
+		var members = [];
+		if(JSUtil.nil(config.groupId))
+			members.push(gs.getUserID());
+		else
+			members = this.getGroupMembers(config.groupId);
+
+		var length = members.length;
+		var helper = new AgileBoardVTBHelper();
+		var roleNames = ['scrum_master', 'scrum_product_owner', 'scrum_admin'];
+		var owner = helper.findBoardOwner(config.groupId, members, roleNames);
+		
+		var vtbBoard = this._getBoardConfiguration(config, owner);
+				
+		if(config.hidePicker)
+			vtbBoard.hideBoardPicker();
+		
+		for(var i = 0; i< length;i++) {
+			vtbBoard.addMember(members[i]);
+		}
+		var boardId = vtbBoard.create();
+		
+		this._setAssignmentGroupForBoard(boardId, config.groupId);
+		
+		this._onBoardCreate(boardId, config.tableName);
+		
+		this._saveVtbBoardForGroup(boardId, config.groupId);
+		
+		return boardId;
+	},
+	
+	_onBoardCreate: function(boardId, tableName) {
+		this._updateVtbLanesOrder(boardId, tableName);
+	},
+	
+	_getBoardConfiguration: function(config, owner) {
+		
+		if (JSUtil.nil(config.filter))
+			config.filter = 'sprint.state=2^assignment_group=' + config.groupId + '^EQ';
+		
+		var vtbBoard = GlideVTBBoardBuilder.guided(config.tableName, 'state')
+						.withOwner(owner)
+						.withFilter(config.filter)
+						.withName(config.name)
+						.withExcludeChildTableLanes(true);
+		
+		if (JSUtil.notNil(config.swimLaneField))
+			vtbBoard.withSwimLaneField(config.swimLaneField)
+					.withSwimLaneFilter(config.swimLaneFilter);
+		
+		return vtbBoard;
+	},
+	
+	_updateVtbLanesOrder: function(boardId, tableName) {
+		var map = {};
+		
+		var choices = new GlideSysChoice(tableName, "state");
+		var recChoices = choices.getChoices();
+		
+		var laneValuePrefix = tableName + ':';
+		while (recChoices.next()) {
+			map[(laneValuePrefix + recChoices.value)] = recChoices.sequence + "";
+		}
+
+		var laneGr = new GlideRecord("vtb_lane");
+		laneGr.addQuery("board", boardId);
+		laneGr.addQuery('is_swim_lane', false);
+		laneGr.addNotNullQuery('value');
+		laneGr.query();
+		
+		while(laneGr.next()){
+			var laneValue = laneGr.getValue('value');
+			var valueParts = laneValue.split(',');
+			var rmStoryValuePart;
+			for (var i = 0; i < valueParts.length; ++i) {
+				if (valueParts[i].indexOf(laneValuePrefix) > -1) {
+					rmStoryValuePart = valueParts[i];
+					break;
+				}
+			}
+			var sequence = map[rmStoryValuePart];
+			if (sequence) {
+				laneGr.setValue("order", sequence);
+				laneGr.update();
+			}
+		}
+	},
+	
+	_setAssignmentGroupForBoard: function(boardId, groupId) {
+		var boardGr = new GlideRecord('vtb_board');
+		boardGr.get(boardId);
+		boardGr.setValue('assignment_group', groupId);
+		boardGr.update();
+	},
+	
+	_saveVtbBoardForGroup: function(boardId, groupId) {
+		var groupBoardGr = new GlideRecord('agile_group_vtb_board');
+		groupBoardGr.setValue('group', groupId);
+		groupBoardGr.setValue('vtb_board', boardId);
+		
+		groupBoardGr.insert();
+	},
+	
+	type: 'AgileBoardVtb'
+};]]></script>
+        <sys_class_name>sys_script_include</sys_class_name>
+        <sys_created_by>admin</sys_created_by>
+        <sys_created_on>2017-06-21 09:39:09</sys_created_on>
+        <sys_id>dfd60be453233200d044ddeeff7b12b9</sys_id>
+        <sys_mod_count>186</sys_mod_count>
+        <sys_name>AgileBoardVtb</sys_name>
+        <sys_package display_value="Agile Development 2.0" source="com.snc.sdlc.agile.2.0">8a0df47ddb126300db57f2353a96192e</sys_package>
+        <sys_policy/>
+        <sys_scope display_value="Test Git Global">68bd04c907331110cc75fa4d7c1ed029</sys_scope>
+        <sys_update_name>sys_script_include_dfd60be453233200d044ddeeff7b12b9</sys_update_name>
+        <sys_updated_by>vf.jarrod.ocallaghan</sys_updated_by>
+        <sys_updated_on>2023-07-07 02:04:03</sys_updated_on>
+    </sys_script_include>
+    <sys_claim action="INSERT_OR_UPDATE">
+        <claim_owner_scope display_value="Test Git Global">68bd04c907331110cc75fa4d7c1ed029</claim_owner_scope>
+        <claim_timestamp>1892e178eae0000001</claim_timestamp>
+        <metadata_update_name>sys_script_include_dfd60be453233200d044ddeeff7b12b9</metadata_update_name>
+        <previous_claim_app_version>1.0.0</previous_claim_app_version>
+        <previous_claim_name>Test Git Global</previous_claim_name>
+        <previous_claim_scope>68bd04c907331110cc75fa4d7c1ed029</previous_claim_scope>
+        <sys_created_by>vf.jarrod.ocallaghan</sys_created_by>
+        <sys_created_on>2023-07-07 02:04:03</sys_created_on>
+        <sys_id>aefd03361b7f21504dc010ea274bcb66</sys_id>
+        <sys_mod_count>0</sys_mod_count>
+        <sys_updated_by>vf.jarrod.ocallaghan</sys_updated_by>
+        <sys_updated_on>2023-07-07 02:04:03</sys_updated_on>
+    </sys_claim>
+    <sys_claim action="INSERT_OR_UPDATE">
+        <claim_owner_scope display_value="Test Git Global">68bd04c907331110cc75fa4d7c1ed029</claim_owner_scope>
+        <claim_timestamp>1892e178ead0000001</claim_timestamp>
+        <metadata_update_name>sys_script_include_dfd60be453233200d044ddeeff7b12b9</metadata_update_name>
+        <previous_claim_app_version/>
+        <previous_claim_name>com.snc.sdlc.agile.2.0</previous_claim_name>
+        <previous_claim_scope>com.snc.sdlc.agile.2.0</previous_claim_scope>
+        <sys_created_by>vf.jarrod.ocallaghan</sys_created_by>
+        <sys_created_on>2023-07-07 02:04:03</sys_created_on>
+        <sys_id>66fd03361b7f21504dc010ea274bcb67</sys_id>
+        <sys_mod_count>0</sys_mod_count>
+        <sys_updated_by>vf.jarrod.ocallaghan</sys_updated_by>
+        <sys_updated_on>2023-07-07 02:04:03</sys_updated_on>
+    </sys_claim>
+</record_update>
