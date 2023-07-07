@@ -1,0 +1,148 @@
+<?xml version="1.0" encoding="UTF-8"?><record_update table="sys_script_include">
+    <sys_script_include action="INSERT_OR_UPDATE">
+        <access>public</access>
+        <active>true</active>
+        <api_name>global.AgileBoardEpicUtil</api_name>
+        <caller_access/>
+        <client_callable>false</client_callable>
+        <description/>
+        <name>AgileBoardEpicUtil</name>
+        <script><![CDATA[var AgileBoardEpicUtil = Class.create();
+AgileBoardEpicUtil.prototype = {
+    initialize: function() {
+        this.EPIC_FILTER_SORT_FIELD = "short_description";
+        this.SORT_ORDER = "ASC"; // Keep "ASC" for ascending order and "DSC" for descending order.
+    },
+
+    getSortField: function(tableName, fieldName) {
+        var gr = new GlideRecord(tableName);
+        if (!gr.isValidField(fieldName)) {
+            this.EPIC_FILTER_SORT_FIELD = "short_description";
+        }
+    },
+
+    getEpicsWithTotal: function(storyFilterId, limit, offset) {
+        var epicData;
+        var epics;
+        var epicFilter;
+        var filterQuery;
+        var agFilter = new GlideRecord('backlog_definition');
+        var epicIds = [];
+
+        agFilter.get(storyFilterId);
+        filterQuery = agFilter.getValue('filter');
+
+        if (JSUtil.notNil(storyFilterId) && JSUtil.notNil(filterQuery)) {
+            epicFilter = new GlideAggregate('rm_story');
+            epicFilter.addNotNullQuery('epic.sys_id');
+			this.getSortField("rm_epic",this.EPIC_FILTER_SORT_FIELD);
+            var sortField = "epic." + this.EPIC_FILTER_SORT_FIELD;
+            if (this.SORT_ORDER === "ASC") {
+                epicFilter.orderBy(sortField);
+            } else if (this.SORT_ORDER === "DSC") {
+                epicFilter.orderByDesc(sortField);
+            }
+            epicFilter.addEncodedQuery(filterQuery);
+            epicFilter.groupBy('epic');
+            epicFilter.chooseWindow(offset, limit - 1, true);
+            epicFilter.query();
+
+            while (epicFilter.next()) {
+                epicIds.push(epicFilter.getValue('epic'));
+            }
+
+        } else {
+            epicFilter = new GlideRecord('rm_epic');
+			this.getSortField("rm_epic",this.EPIC_FILTER_SORT_FIELD);
+            if (this.SORT_ORDER === "ASC") {
+                epicFilter.orderBy(this.EPIC_FILTER_SORT_FIELD);
+            } else if (this.SORT_ORDER === "DSC") {
+                epicFilter.orderByDesc(this.EPIC_FILTER_SORT_FIELD);
+            }
+            epicFilter.chooseWindow(0, limit - 1, true);
+            epicFilter.query();
+            while (epicFilter.next()) {
+                epicIds.push(epicFilter.getValue('sys_id'));
+            }
+        }
+        epics = this.getFilterData("rm_epic", epicIds, this.EPIC_FILTER_SORT_FIELD, this.SORT_ORDER);
+
+        return {
+            epics: epics,
+            total: epicFilter.getRowCount()
+        };
+    },
+
+    getFilterData: function(filterTable, filterRecIds, sortField, sortOrder) {
+        var filterRecData;
+        var filterData = [];
+        var filterRecGr = new GlideRecord(filterTable);
+
+        filterRecGr.addQuery('sys_id', 'IN', filterRecIds.join(','));
+        if (sortOrder === "ASC") {
+            filterRecGr.orderBy(sortField);
+        } else if (sortOrder === "DSC") {
+            filterRecGr.orderByDesc(sortField);
+        }
+        filterRecGr.query();
+
+        while (filterRecGr.next()) {
+            filterRecData = {};
+
+            filterRecData.sys_id = filterRecGr.getValue('sys_id');
+            filterRecData.short_description = filterRecGr.getValue('short_description');
+            filterRecData.totalStoryCount = filterRecGr.getValue('total_story_count');
+            filterRecData.completedStoryPoints = filterRecGr.getValue('completed_count');
+            filterRecData.totalStoryPoints = filterRecGr.getValue('total_estimate');
+            filterRecData.percentCompleteByEstimate = filterRecGr.getValue('percent_complete_by_estimate');
+
+            filterData.push(filterRecData);
+        }
+
+        return filterData;
+    },
+
+    type: 'AgileBoardEpicUtil'
+};]]></script>
+        <sys_class_name>sys_script_include</sys_class_name>
+        <sys_created_by>admin</sys_created_by>
+        <sys_created_on>2017-07-11 22:18:44</sys_created_on>
+        <sys_id>1736745753b33200d044ddeeff7b1227</sys_id>
+        <sys_mod_count>111</sys_mod_count>
+        <sys_name>AgileBoardEpicUtil</sys_name>
+        <sys_package display_value="Agile Development 2.0" source="com.snc.sdlc.agile.2.0">8a0df47ddb126300db57f2353a96192e</sys_package>
+        <sys_policy/>
+        <sys_scope display_value="Test Git Global">68bd04c907331110cc75fa4d7c1ed029</sys_scope>
+        <sys_update_name>sys_script_include_1736745753b33200d044ddeeff7b1227</sys_update_name>
+        <sys_updated_by>vf.jarrod.ocallaghan</sys_updated_by>
+        <sys_updated_on>2023-07-07 00:31:50</sys_updated_on>
+    </sys_script_include>
+    <sys_claim action="INSERT_OR_UPDATE">
+        <claim_owner_scope display_value="Test Git Global">68bd04c907331110cc75fa4d7c1ed029</claim_owner_scope>
+        <claim_timestamp>1892dc322970000001</claim_timestamp>
+        <metadata_update_name>sys_script_include_1736745753b33200d044ddeeff7b1227</metadata_update_name>
+        <previous_claim_app_version>1.0.0</previous_claim_app_version>
+        <previous_claim_name>Test Git Global</previous_claim_name>
+        <previous_claim_scope>68bd04c907331110cc75fa4d7c1ed029</previous_claim_scope>
+        <sys_created_by>vf.jarrod.ocallaghan</sys_created_by>
+        <sys_created_on>2023-07-07 00:31:50</sys_created_on>
+        <sys_id>77d8f2f21b3f21504dc010ea274bcbb8</sys_id>
+        <sys_mod_count>0</sys_mod_count>
+        <sys_updated_by>vf.jarrod.ocallaghan</sys_updated_by>
+        <sys_updated_on>2023-07-07 00:31:50</sys_updated_on>
+    </sys_claim>
+    <sys_claim action="INSERT_OR_UPDATE">
+        <claim_owner_scope display_value="Test Git Global">68bd04c907331110cc75fa4d7c1ed029</claim_owner_scope>
+        <claim_timestamp>1892dc322940000001</claim_timestamp>
+        <metadata_update_name>sys_script_include_1736745753b33200d044ddeeff7b1227</metadata_update_name>
+        <previous_claim_app_version/>
+        <previous_claim_name>com.snc.sdlc.agile.2.0</previous_claim_name>
+        <previous_claim_scope>com.snc.sdlc.agile.2.0</previous_claim_scope>
+        <sys_created_by>vf.jarrod.ocallaghan</sys_created_by>
+        <sys_created_on>2023-07-07 00:31:50</sys_created_on>
+        <sys_id>ffd8f2f21b3f21504dc010ea274bcbb8</sys_id>
+        <sys_mod_count>0</sys_mod_count>
+        <sys_updated_by>vf.jarrod.ocallaghan</sys_updated_by>
+        <sys_updated_on>2023-07-07 00:31:50</sys_updated_on>
+    </sys_claim>
+</record_update>
