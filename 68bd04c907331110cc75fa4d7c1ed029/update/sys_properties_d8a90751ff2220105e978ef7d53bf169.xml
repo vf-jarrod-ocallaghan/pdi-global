@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="UTF-8"?><record_update table="sys_properties">
+    <sys_properties action="INSERT_OR_UPDATE">
+        <choices>include_untracked&#13;
+exclude_untracked</choices>
+        <description>The default mode of commit to Source Control.&#13;
+       The include_untracked mode commits updates to the application that do not generate sys_update_xml, as well as any user-selected updates.&#13;
+       The exclude_untracked mode commits only updates selected by the user in the "Select files to commit to source control" dialog.&#13;
+&#13;
+The legacy mode (pre-Rome) is include_untracked mode. &#13;
+This property is always ignored and the commit occurs in include_untracked mode in the following cases:&#13;
+       Linking to Source Control for the first time.&#13;
+       Publishing an app that's linked to Source Control from Studio.&#13;
+       Selective commit mode is disabled.&#13;
+&#13;
+The default value set in this property can be overwritten by the check box on the "Select files to commit to source control" dialog. To disable the check box and use the value of this property, create the sn_devstudio.vcs.allow_commit_mode_selection property and set it to false.</description>
+        <ignore_cache>true</ignore_cache>
+        <is_private>false</is_private>
+        <name>glide.sourcecontrol.default_commit_mode</name>
+        <read_roles/>
+        <suffix/>
+        <sys_class_name>sys_properties</sys_class_name>
+        <sys_created_by>admin</sys_created_by>
+        <sys_created_on>2021-02-24 21:51:36</sys_created_on>
+        <sys_id>d8a90751ff2220105e978ef7d53bf169</sys_id>
+        <sys_mod_count>1630</sys_mod_count>
+        <sys_name>glide.sourcecontrol.default_commit_mode</sys_name>
+        <sys_package display_value="Metadata Source Control" source="com.glide.source_control">27b210e5db122300db57f2353a96194e</sys_package>
+        <sys_policy/>
+        <sys_scope display_value="Test Git Global">68bd04c907331110cc75fa4d7c1ed029</sys_scope>
+        <sys_update_name>sys_properties_d8a90751ff2220105e978ef7d53bf169</sys_update_name>
+        <sys_updated_by>vf.jarrod.ocallaghan</sys_updated_by>
+        <sys_updated_on>2023-07-11 23:47:28</sys_updated_on>
+        <type>string</type>
+        <value>include_untracked</value>
+        <write_roles/>
+    </sys_properties>
+    <sys_translated_text action="delete_multiple" query="documentkey=d8a90751ff2220105e978ef7d53bf169"/>
+    <sys_claim action="INSERT_OR_UPDATE">
+        <claim_owner_scope display_value="Test Git Global">68bd04c907331110cc75fa4d7c1ed029</claim_owner_scope>
+        <claim_timestamp>189475a50130000001</claim_timestamp>
+        <metadata_update_name>sys_properties_d8a90751ff2220105e978ef7d53bf169</metadata_update_name>
+        <previous_claim_app_version>1.2.0</previous_claim_app_version>
+        <previous_claim_name>Test Git Global</previous_claim_name>
+        <previous_claim_scope>68bd04c907331110cc75fa4d7c1ed029</previous_claim_scope>
+        <sys_created_by>vf.jarrod.ocallaghan</sys_created_by>
+        <sys_created_on>2023-07-11 23:47:28</sys_created_on>
+        <sys_id>a6ae54681b8435104dc010ea274bcb54</sys_id>
+        <sys_mod_count>0</sys_mod_count>
+        <sys_updated_by>vf.jarrod.ocallaghan</sys_updated_by>
+        <sys_updated_on>2023-07-11 23:47:28</sys_updated_on>
+    </sys_claim>
+    <sys_claim action="INSERT_OR_UPDATE">
+        <claim_owner_scope display_value="Test Git Global">68bd04c907331110cc75fa4d7c1ed029</claim_owner_scope>
+        <claim_timestamp>189475a50120000001</claim_timestamp>
+        <metadata_update_name>sys_properties_d8a90751ff2220105e978ef7d53bf169</metadata_update_name>
+        <previous_claim_app_version/>
+        <previous_claim_name>com.glide.source_control</previous_claim_name>
+        <previous_claim_scope>com.glide.source_control</previous_claim_scope>
+        <sys_created_by>vf.jarrod.ocallaghan</sys_created_by>
+        <sys_created_on>2023-07-11 23:47:28</sys_created_on>
+        <sys_id>aeae54681b8435104dc010ea274bcb54</sys_id>
+        <sys_mod_count>0</sys_mod_count>
+        <sys_updated_by>vf.jarrod.ocallaghan</sys_updated_by>
+        <sys_updated_on>2023-07-11 23:47:28</sys_updated_on>
+    </sys_claim>
+</record_update>
