@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?><record_update table="sys_atf_test">
+    <sys_atf_test action="INSERT_OR_UPDATE">
+        <active>true</active>
+        <copied_from display_value="(VF) ATF Starter Steps">f01a2d7c1b8475104dc010ea274bcb17</copied_from>
+        <description>Copy this test to get a head start on basic steps required for every ATF</description>
+        <enable_parameterized_testing>false</enable_parameterized_testing>
+        <fail_on_server_error>false</fail_on_server_error>
+        <name>(VF) ATF Starter Steps copy</name>
+        <parameters/>
+        <remember/>
+        <sys_class_name>sys_atf_test</sys_class_name>
+        <sys_created_by>vf.jarrod.ocallaghan</sys_created_by>
+        <sys_created_on>2023-07-12 23:57:52</sys_created_on>
+        <sys_id>b0aa25bc1b8475104dc010ea274bcb0f</sys_id>
+        <sys_mod_count>0</sys_mod_count>
+        <sys_name>(VF) ATF Starter Steps copy</sys_name>
+        <sys_package display_value="Test Git Global" source="68bd04c907331110cc75fa4d7c1ed029">68bd04c907331110cc75fa4d7c1ed029</sys_package>
+        <sys_policy/>
+        <sys_scope display_value="Test Git Global">68bd04c907331110cc75fa4d7c1ed029</sys_scope>
+        <sys_update_name>sys_atf_test_b0aa25bc1b8475104dc010ea274bcb0f</sys_update_name>
+        <sys_updated_by>vf.jarrod.ocallaghan</sys_updated_by>
+        <sys_updated_on>2023-07-12 23:57:52</sys_updated_on>
+    </sys_atf_test>
+    <sys_variable_value action="delete_multiple" query="document_key=b0aa25bc1b8475104dc010ea274bcb0f"/>
+</record_update>
